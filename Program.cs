@@ -20,10 +20,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy => policy
-            .WithOrigins("https://hotel-frontend-h3sx.onrender.com/")
+            .WithOrigins("https://hotel-frontend-h3sx.onrender.com") 
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+
 
 // Swagger with JWT support
 builder.Services.AddEndpointsApiExplorer();
