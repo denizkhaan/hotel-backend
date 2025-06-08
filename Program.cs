@@ -79,15 +79,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// Middleware pipeline
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "HotelReservation API V1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "HotelReservation API V1");
+});
+
 
 app.UseStaticFiles();               // Serve images from wwwroot
 app.UseCors("AllowReact");          // Enable CORS for frontend
