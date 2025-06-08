@@ -54,7 +54,7 @@ namespace Hotel_reservation_app.Controllers
             var hotels = _context.Hotels.Include(h => h.Rooms).AsQueryable();
 
             if (!string.IsNullOrEmpty(location))
-                hotels = hotels.Where(h => h.Location.Contains(location));
+                hotels = hotels.Where(h => EF.Functions.ILike(h.Location, $"%{location}%")); // <--- This line changes
 
             if (minPrice.HasValue)
                 hotels = hotels.Where(h => h.Rooms.Any(r => r.PricePerNight >= minPrice));
@@ -67,6 +67,7 @@ namespace Hotel_reservation_app.Controllers
 
             return Ok(hotels.ToList());
         }
+
 
         // ℹ️ Room + Hotel Info
         [HttpGet("room-info")]
