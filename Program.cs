@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy => policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins("https://hotel-frontend-h3sx.onrender.com/")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
