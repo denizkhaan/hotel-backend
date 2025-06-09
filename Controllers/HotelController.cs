@@ -47,14 +47,18 @@ namespace Hotel_reservation_app.Controllers
             return Ok("User updated");
         }
 
-        // 📋 Hotel List with Filters
         [HttpGet("list")]
-        public IActionResult ListHotels([FromQuery] string location, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] int? capacity)
+        public IActionResult ListHotels(
+       [FromQuery] string location,
+       [FromQuery] decimal? minPrice,
+       [FromQuery] decimal? maxPrice,
+       [FromQuery] int? capacity,
+       [FromQuery] string roomType) 
         {
             var hotels = _context.Hotels.Include(h => h.Rooms).AsQueryable();
 
             if (!string.IsNullOrEmpty(location))
-                hotels = hotels.Where(h => EF.Functions.ILike(h.Location, $"%{location}%")); // <--- This line changes
+                hotels = hotels.Where(h => h.Location.ToLower().Contains(location.ToLower()));
 
             if (minPrice.HasValue)
                 hotels = hotels.Where(h => h.Rooms.Any(r => r.PricePerNight >= minPrice));
@@ -65,8 +69,12 @@ namespace Hotel_reservation_app.Controllers
             if (capacity.HasValue)
                 hotels = hotels.Where(h => h.Rooms.Any(r => r.Capacity >= capacity));
 
+            if (!string.IsNullOrEmpty(roomType)) 
+                hotels = hotels.Where(h => h.Rooms.Any(r => r.RoomType.ToLower().Contains(roomType.ToLower())));
+
             return Ok(hotels.ToList());
         }
+
 
 
         // ℹ️ Room + Hotel Info
