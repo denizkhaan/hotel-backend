@@ -32,6 +32,8 @@ namespace Hotel_reservation_app.Controllers
 
 
 
+
+
         [HttpGet("user/{userId}")]
         public IActionResult GetReservationsByUser(int userId)
         {
