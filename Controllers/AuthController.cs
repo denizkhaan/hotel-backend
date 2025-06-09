@@ -69,6 +69,14 @@ namespace Hotel_reservation_app.Controllers
                 }
             });
         }
+        [HttpGet("user/{id}")]
+        public IActionResult GetUserById(int id)
+        {
+            var user = _context.Users.Find(id);
+            if (user == null) return NotFound("User not found");
+            return Ok(user);
+        }
+
 
 
 

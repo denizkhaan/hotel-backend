@@ -1,38 +1,56 @@
-using Hotel_reservation_app;
+﻿using Hotel_reservation_app;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using System;
 using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// --- SERVICES ---
+
+// Enable controllers + fix reference loops
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-// CORS policy for React frontend
+// EF Core (PostgreSQL)
+builder.Services.AddDbContext<HotelContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// CORS for frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy => policy
-            .WithOrigins("https://hotel-frontend-h3sx.onrender.com") 
+            .WithOrigins("https://hotel-frontend-h3sx.onrender.com") // Your frontend URL
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                builder.Configuration["Jwt:Key"]))
+        };
+    });
 
-// Swagger with JWT support
+// Swagger + JWT support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "HotelReservation API", Version = "v1" });
-
-    c.OperationFilter<FileUploadOperationFilter>(); // <-- Required for file uploads
+    c.OperationFilter<FileUploadOperationFilter>();
 
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
@@ -56,29 +74,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-
-// EF Core with PostgreSQL
-builder.Services.AddDbContext<HotelContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
-// JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
-                builder.Configuration["Jwt:Key"]))
-        };
-    });
-
 var app = builder.Build();
+
+// --- MIDDLEWARE ---
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -86,13 +84,12 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "HotelReservation API V1");
 });
 
-
 app.UseStaticFiles();               // Serve images from wwwroot
-app.UseCors("AllowReact");          // Enable CORS for frontend
-app.UseHttpsRedirection();          // Enforce HTTPS
-app.UseAuthentication();            // Enable JWT authentication
-app.UseAuthorization();             // Enable role/claims-based access
+app.UseCors("AllowReact");          // ✅ Enable CORS early
+app.UseHttpsRedirection();
+app.UseAuthentication();            // ✅ JWT middleware
+app.UseAuthorization();             // ✅ Role-based access
 
-app.MapControllers();               // Map API controllers
+app.MapControllers();               // Map routes
 
 app.Run();

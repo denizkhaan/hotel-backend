@@ -10,18 +10,21 @@ namespace Hotel_reservation_app.Controllers
         private readonly HotelContext _context;
         public ReservationController(HotelContext context) => _context = context;
 
-        [HttpPost("make")]
-        public IActionResult MakeReservation([FromBody] Reservation res)
+        [HttpPost("reservation/make")]
+        public IActionResult MakeReservation([FromBody] Reservation reservation)
         {
-            _context.Attach(new User { Id = res.UserId });
-            _context.Attach(new Hotel { Id = res.HotelId });
-            _context.Attach(new Room { Id = res.RoomId });
-
-            _context.Reservations.Add(res);
-            _context.SaveChanges();
-
-            return Ok("Reservation made");
+            try
+            {
+                _context.Reservations.Add(reservation);
+                _context.SaveChanges();
+                return Ok("Reservation created");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
 
         [HttpGet("user/{userId}")]
