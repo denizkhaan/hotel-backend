@@ -13,15 +13,23 @@ namespace Hotel_reservation_app.Controllers
         [HttpPost("make")]
         public IActionResult MakeReservation([FromBody] Reservation res)
         {
-            _context.Attach(new User { Id = res.UserId });
-            _context.Attach(new Hotel { Id = res.HotelId });
-            _context.Attach(new Room { Id = res.RoomId });
+            var user = _context.Users.Find(res.UserId);
+            var hotel = _context.Hotels.Find(res.HotelId);
+            var room = _context.Rooms.Find(res.RoomId);
+
+            if (user == null || hotel == null || room == null)
+                return BadRequest("Invalid user, hotel, or room ID.");
+
+            res.User = user;
+            res.Hotel = hotel;
+            res.Room = room;
 
             _context.Reservations.Add(res);
             _context.SaveChanges();
 
             return Ok("Reservation made");
         }
+
 
 
         [HttpGet("user/{userId}")]
