@@ -18,7 +18,11 @@ namespace Hotel_reservation_app.Controllers
             var room = _context.Rooms.Find(res.RoomId);
 
             if (user == null || hotel == null || room == null)
-                return BadRequest("Invalid user, hotel, or room ID.");
+                return BadRequest("Invalid userId, hotelId, or roomId.");
+
+            // 🛠 Force UTC
+            res.StartDate = DateTime.SpecifyKind(res.StartDate, DateTimeKind.Utc);
+            res.EndDate = DateTime.SpecifyKind(res.EndDate, DateTimeKind.Utc);
 
             res.User = user;
             res.Hotel = hotel;
@@ -27,8 +31,9 @@ namespace Hotel_reservation_app.Controllers
             _context.Reservations.Add(res);
             _context.SaveChanges();
 
-            return Ok("Reservation made");
+            return Ok("Reservation made.");
         }
+
 
 
 
